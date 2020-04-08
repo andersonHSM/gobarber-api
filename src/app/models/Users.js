@@ -41,6 +41,6 @@ class User extends Model {
 }
 
 User.associate = models =>
-  User.belongsTo(models.Files, { foreignKey: 'avatar_id' });
+  User.belongsTo(models.File, { foreignKey: 'avatar_id', as: 'avatar' });
 
 export default User;
