@@ -60,14 +60,16 @@ class UserController {
     }
 
     if (!oldPassword) {
-      return res.status(400).json({ error: 'Old password not provided' });
-    }
-
-    if (!(await user.checkPassword(oldPassword))) {
-      return res.status(401).json({ error: 'Password does not match' });
+      if (password) {
+        return res.status(400).json({ error: 'Old password not provided' });
+      }
     }
 
     if (oldPassword) {
+      if (!(await user.checkPassword(oldPassword))) {
+        return res.status(401).json({ error: 'Password does not match' });
+      }
+
       if (!password) {
         return res.status(401).json({ error: 'Please, inform a new password' });
       }
