@@ -1,5 +1,6 @@
 import * as Yup from 'yup';
 import { startOfHour, parseISO, isBefore } from 'date-fns';
+import { Op } from 'sequelize';
 
 import Appointment from '../models/Appointment';
 import User from '../models/Users';
@@ -65,13 +66,13 @@ class AppointmentController {
 
     // Implementação pessoal (retornar depois)
 
-    /*   const appointmentDateObject = new Date(date);
+    const appointmentDateObject = new Date(date);
 
-    const appointmentDateObjectNextHour = new Date(
+    const appointmentNextHourDateObject = new Date(
       appointmentDateObject.setHours(appointmentDateObject.getHours() + 1)
     );
 
-    const appointmentDateObjectPreviousHour = new Date(
+    const appointmentPreviousHourDateObject = new Date(
       appointmentDateObject.setHours(
         appointmentDateObject.getHours().valueOf() - 2
       )
@@ -80,7 +81,12 @@ class AppointmentController {
     const previousHourAppointment = await Appointment.findOne({
       where: {
         canceled_at: null,
-        date: appointmentDateObjectPreviousHour,
+        date: {
+          [Op.between]: [
+            appointmentPreviousHourDateObject,
+            appointmentDateObject,
+          ],
+        },
         provider_id,
       },
     });
@@ -88,7 +94,9 @@ class AppointmentController {
     const nextHourAppointment = await Appointment.findOne({
       where: {
         canceled_at: null,
-        date: appointmentDateObjectNextHour,
+        date: {
+          [Op.between]: [appointmentDateObject, appointmentNextHourDateObject],
+        },
         provider_id,
       },
     });
@@ -101,29 +109,29 @@ class AppointmentController {
       return res
         .status(400)
         .json({ error: 'Provider will not be avaliable at this time' });
-    } */
-
-    /** validação das aulas */
-    /** Check for past dates */
-    const hourStart = startOfHour(parseISO(date));
-
-    if (isBefore(hourStart, new Date())) {
-      return res
-        .status(400)
-        .json({ error: 'Dates prior today are not allowed' });
     }
 
-    /** Check date availability */
+    // /** validação das aulas */
+    // /** Check for past dates */
+    // const hourStart = startOfHour(parseISO(date));
 
-    const providerAppointmentAtInputedHour = await Appointment.findOne({
-      where: { provider_id, canceled_at: null, date: hourStart },
-    });
+    // if (isBefore(hourStart, new Date())) {
+    //   return res
+    //     .status(400)
+    //     .json({ error: 'Dates prior today are not allowed' });
+    // }
 
-    if (providerAppointmentAtInputedHour) {
-      return res
-        .status(400)
-        .json({ error: 'Appointment date is not avaliable' });
-    }
+    // /** Check date availability */
+
+    // const providerAppointmentAtInputedHour = await Appointment.findOne({
+    //   where: { provider_id, canceled_at: null, date: hourStart },
+    // });
+
+    // if (providerAppointmentAtInputedHour) {
+    //   return res
+    //     .status(400)
+    //     .json({ error: 'Appointment date is not avaliable' });
+    // }
 
     const appointment = await Appointment.create({
       user_id: req.userId,
