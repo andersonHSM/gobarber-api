@@ -1,5 +1,6 @@
 /* Conexão com o banco */
 import Sequelize from 'sequelize';
+import mongoose from 'mongoose';
 
 import Appointment from '../app/models/Appointment';
 import User from '../app/models/Users';
@@ -12,6 +13,7 @@ const models = [User, File, Appointment];
 class Database {
   constructor() {
     this.init();
+    this.mongo();
   }
 
   init() {
@@ -22,6 +24,14 @@ class Database {
     models.forEach(
       model => model.associate && model.associate(this.connection.models)
     );
+  }
+
+  mongo() {
+    this.mongoConnection = mongoose.connect('mongodb://mongo:27017/gobarber', {
+      useNewUrlParser: true,
+      useFindAndModify: true,
+      useUnifiedTopology: true,
+    });
   }
 }
 
