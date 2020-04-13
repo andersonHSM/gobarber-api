@@ -12,11 +12,11 @@ const models = [User, File, Appointment];
 
 class Database {
   constructor() {
-    this.init();
+    this.initPostgres();
     this.mongo();
   }
 
-  init() {
+  initPostgres() {
     this.connection = new Sequelize(databaseConfig);
 
     models.forEach(model => model.init(this.connection));
@@ -27,11 +27,12 @@ class Database {
   }
 
   mongo() {
-    this.mongoConnection = mongoose.connect('mongodb://mongo:27017/gobarber', {
-      useNewUrlParser: true,
-      useFindAndModify: true,
-      useUnifiedTopology: true,
-    });
+    this.mongoConnection = mongoose
+      .connect('mongodb://mongo:27017/gobarber', {
+        useNewUrlParser: true,
+      })
+      .then(res => console.log(res.connections))
+      .catch(err => console.log(err, 'oiooi'));
   }
 }
 

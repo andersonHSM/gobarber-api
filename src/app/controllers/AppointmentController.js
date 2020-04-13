@@ -1,10 +1,11 @@
 import * as Yup from 'yup';
-import { startOfHour, parseISO, isBefore } from 'date-fns';
+// import { startOfHour, parseISO, isBefore } from 'date-fns';
 import { Op } from 'sequelize';
 
 import Appointment from '../models/Appointment';
 import User from '../models/Users';
 import File from '../models/File';
+import Notification from '../schemas/Notification';
 
 class AppointmentController {
   async index(req, res) {
@@ -133,13 +134,25 @@ class AppointmentController {
     //     .json({ error: 'Appointment date is not avaliable' });
     // }
 
-    const appointment = await Appointment.create({
-      user_id: req.userId,
-      provider_id,
-      date,
+    // const appointment = await Appointment.create({
+    //   user_id: req.userId,
+    //   provider_id,
+    //   date,
+    // });
+
+    /**
+     * Notify appointment provider
+     */
+
+    const { name } = await User.findByPk(req.userId);
+
+    const notification = await Notification.create({
+      content: `Novo agendamento de ${name} para o dia 02 de Maio às 08:40`,
+      user: provider_id,
     });
 
-    return res.json(appointment);
+    return res.json({ notification });
+    // return res.json(appointment);
   }
 }
 
