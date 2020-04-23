@@ -7,9 +7,10 @@ import AuthMiddleware from './app/middlewares/AuthMiddleware';
 
 import AppointmentController from './app/controllers/AppointmentController';
 import FileController from './app/controllers/FileController';
-import ScheduleController from './app/controllers/ScheduleController';
-import SessionController from './app/controllers/SessionController';
+import NotificationController from './app/controllers/NotificationController';
 import ProviderController from './app/controllers/ProviderController';
+import SessionController from './app/controllers/SessionController';
+import ScheduleController from './app/controllers/ScheduleController';
 import UserController from './app/controllers/UserController';
 
 const routes = new Router();
@@ -28,6 +29,8 @@ routes.get('/appointments/', AppointmentController.index);
 routes.post('/appointments/', AppointmentController.store);
 
 routes.get('/schedule/', ScheduleController.index);
+
+routes.get('/notifications/', NotificationController.index);
 
 routes.post(
   '/files/',

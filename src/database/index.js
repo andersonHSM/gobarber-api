@@ -27,12 +27,10 @@ class Database {
   }
 
   mongo() {
-    this.mongoConnection = mongoose
-      .connect('mongodb://mongo:27017/gobarber', {
-        useNewUrlParser: true,
-      })
-      .then(res => console.log(res.connections))
-      .catch(err => console.log(err, 'oiooi'));
+    this.mongoConnection = mongoose.connect('mongodb://mongo:27017/gobarber', {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
   }
 }
 

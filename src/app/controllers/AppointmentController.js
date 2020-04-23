@@ -1,5 +1,6 @@
 import * as Yup from 'yup';
-// import { startOfHour, parseISO, isBefore } from 'date-fns';
+import { format } from 'date-fns';
+import pt from 'date-fns/locale/pt';
 import { Op } from 'sequelize';
 
 import Appointment from '../models/Appointment';
@@ -65,18 +66,50 @@ class AppointmentController {
         .json({ error: 'You can only create appointments with providers' });
     }
 
+    if (isProvider.id === req.userId) {
+      return res
+        .status(400)
+        .json({ error: 'Provider can not create and appointment for himself' });
+    }
+
     // Implementação pessoal (retornar depois)
 
     const appointmentDateObject = new Date(date);
 
-    const appointmentNextHourDateObject = new Date(
-      appointmentDateObject.setHours(appointmentDateObject.getHours() + 1)
-    );
+    // const appointmentNextHourDateObject = new Date(
+    //   appointmentDateObject.setHours(appointmentDateObject.getHours() + 1)
+    // );
 
-    const appointmentPreviousHourDateObject = new Date(
-      appointmentDateObject.setHours(
-        appointmentDateObject.getHours().valueOf() - 2
-      )
+    const getNextHour = oldHour => {
+      const hour = new Date(oldHour.getTime());
+      const oneHourAfter = new Date(
+        hour.setHours(hour.getHours().valueOf() + 1)
+      );
+
+      const oneMinutBefore = new Date(
+        oneHourAfter.setMinutes(parseInt(oneHourAfter.getMinutes(), 10) - 1)
+      );
+
+      return oneMinutBefore;
+    };
+
+    const appointmentNextHourDateObject = getNextHour(appointmentDateObject);
+
+    const getPreviousHour = oldHour => {
+      const hour = new Date(oldHour.getTime());
+      const oneHourBefore = new Date(
+        hour.setHours(parseInt(hour.getHours(), 10) - 1)
+      );
+
+      const oneMinutAfter = new Date(
+        oneHourBefore.setMinutes(+oneHourBefore.getMinutes() + 1)
+      );
+
+      return oneMinutAfter;
+    };
+
+    const appointmentPreviousHourDateObject = getPreviousHour(
+      appointmentDateObject
     );
 
     const previousHourAppointment = await Appointment.findOne({
@@ -102,7 +135,15 @@ class AppointmentController {
       },
     });
 
-    if (previousHourAppointment) {
+    const exactHourAppointment = await Appointment.findOne({
+      where: {
+        canceled_at: null,
+        date: appointmentDateObject,
+        provider_id,
+      },
+    });
+
+    if (previousHourAppointment || exactHourAppointment) {
       return res.status(400).json({ error: 'Provider still in a appointment' });
     }
 
@@ -134,11 +175,11 @@ class AppointmentController {
     //     .json({ error: 'Appointment date is not avaliable' });
     // }
 
-    // const appointment = await Appointment.create({
-    //   user_id: req.userId,
-    //   provider_id,
-    //   date,
-    // });
+    const appointment = await Appointment.create({
+      user_id: req.userId,
+      provider_id,
+      date,
+    });
 
     /**
      * Notify appointment provider
@@ -146,13 +187,18 @@ class AppointmentController {
 
     const { name } = await User.findByPk(req.userId);
 
-    const notification = await Notification.create({
-      content: `Novo agendamento de ${name} para o dia 02 de Maio às 08:40`,
+    const formattedDate = format(
+      appointmentDateObject,
+      "'dia' dd 'de' MMMM', às' H:mm'h'",
+      { locale: pt }
+    );
+
+    await Notification.create({
+      content: `Novo agendamento de ${name} para o ${formattedDate}`,
       user: provider_id,
     });
 
-    return res.json({ notification });
-    // return res.json(appointment);
+    return res.json(appointment);
   }
 }
 
